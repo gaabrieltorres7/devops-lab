@@ -6,8 +6,15 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     user: root
+    networks:
+      - challenge-network
 
   db:
     container_name: challengeDatabase_dev
     ports:
       - '${DB_PORT}:5432'
+    networks:
+      - challenge-network
+
+networks:
+  challenge-network:
