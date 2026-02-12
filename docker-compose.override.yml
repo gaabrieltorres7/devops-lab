@@ -1,0 +1,13 @@
+services:
+  app:
+    container_name: challengeApp_dev
+    restart: unless-stopped
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    user: root
+
+  db:
+    container_name: challengeDatabase_dev
+    ports:
+      - '${DB_PORT}:5432'
