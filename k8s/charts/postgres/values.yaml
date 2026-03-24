@@ -1,0 +1,8 @@
+auth:
+  database: db_dev
+  username: docker
+  password: secret
+
+primary:
+  persistence:
+    size: 1Gi
