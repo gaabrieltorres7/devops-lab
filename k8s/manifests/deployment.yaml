@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: devops-lab
+  name: devops-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devops-lab
+  template:
+    metadata:
+      labels:
+        app: devops-lab
+    spec:
+      containers:
+        - image: devops-lab:latest
+          name: devops-lab
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: devops-lab-secrets
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
