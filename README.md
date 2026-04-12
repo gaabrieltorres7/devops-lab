@@ -1,63 +1,119 @@
-# 🚀 E-commerce Challenge - Backend
+# 🚀 DevOps Lab
 
- API RESTful desenvolvida com **NestJS** como parte do Desafio Técnico da Waving Test.  Este projeto serve como a base de dados e lógica de negócio para uma aplicação de e-commerce.
+A production-grade DevOps laboratory using a NestJS + PostgreSQL API as the base application to demonstrate modern infrastructure practices with Kubernetes, Terraform, Helm, and CI/CD.
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Stack
 
--   **Framework:** [NestJS](https://nestjs.com/) 
--   **ORM:** [Prisma](https://www.prisma.io/) 
--   **Banco de Dados:** [PostgreSQL](https://www.postgresql.org/) (rodando em Docker)
--   **Autenticação:** [JWT](https://jwt.io/) (JSON Web Tokens)
--   **Containerização:** [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
--   **Validação:** [Zod](https://zod.dev/) (usado implicitamente pelo `nestjs-zod`)
+**Application:** NestJS, Prisma, PostgreSQL, JWT
 
----
+**Infrastructure:**
+- **Containerization:** Docker & Docker Compose
+- **Orchestration:** Kubernetes — Kind (local) / Amazon EKS (cloud)
+- **IaC:** Terraform — VPC, EKS, ECR, AWS Load Balancer Controller
+- **Automation:** Makefile
+- **Package Manager:** Helm — custom charts for application deployment
+- **CI/CD:** GitHub Actions — automated build and push to Amazon ECR
+- **Registry:** Amazon ECR
+- **Secrets Management:** Sealed Secrets
+- **DNS:** External DNS integrated with Route 53
+- **TLS:** ACM certificate integrated with AWS Load Balancer Controller
+- **Configuration Management:** Ansible with Vagrant for local testing
 
-## 🏁 Rodando o Projeto
+## 🏁 Running Locally (Kind)
 
-Para executar o backend, siga os passos abaixo.
+### Prerequisites
+- Docker
+- Kind
+- kubectl
+- Helm
 
-### Pré-requisitos
--   [Docker](https://www.docker.com/products/docker-desktop/)
--   [Docker Compose](https://docs.docker.com/compose/install/)
+### Setup
 
-### Guia de Instalação
+```bash
+make setup-dev   # creates Kind cluster, installs ingress-nginx and postgres via Helm
+make deploy-dev  # builds image, loads into Kind and applies manifests
+```
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone <link do repo>
-    cd <pasta do projeto>
-    ```
+### Teardown
 
-2.  **Configure as variáveis de ambiente:**
-    Crie uma cópia do arquivo de exemplo `.env.example` e preencha seu .env.
-    ```bash
-    cp .env.example .env
-    ```
+```bash
+make teardown-dev
+```
 
-3.  **Inicie os contêineres com Docker Compose:**
-    Este comando irá construir a imagem e iniciar os serviços do NestJS e do PostgreSQL em segundo plano.
-    ```bash
-    docker compose up --build -d
-    ```
+## ☁️ AWS Infrastructure (Terraform)
 
-4.  **Aplique as migrações do banco de dados:**
-    ```bash
-    docker compose exec app npx prisma migrate dev
-    ```
+> Infrastructure provisioned using the Terraform modules from [terraform-aws](https://github.com/gaabrieltorres7/terraform-aws).
 
-✅ Pronto! A API estará rodando em `http://localhost:3000`.
+### Prerequisites
+- AWS CLI configured
+- Terraform
 
-## 🧠 Decisões de Arquitetura e Boas Práticas
+### Provisioning
 
-Nesta seção, explico brevemente algumas das decisões técnicas e os princípios de design de software aplicados no desenvolvimento do backend.
+```bash
+cd terraform
+terraform init
+terraform apply
+aws eks update-kubeconfig --region <region> --name <cluster-name>
+```
 
-* **Arquitetura e SOLID:** A estrutura do projeto foi baseada nos princípios da **Arquitetura Hexagonal** e do **Repository Pattern**. Isso resultou em uma separação clara de responsabilidades, alinhada com os **princípios SOLID**:
-    * **Princípio da Responsabilidade Única (S):** Cada classe tem um propósito bem definido. `Controllers` lidam com as requisições HTTP, `Services` contêm a lógica de negócio, e `Repositories` abstraem o acesso aos dados.
-    * **Princípio da Inversão de Dependência (D):** Para garantir o desacoplamento, a arquitetura utiliza extensivamente o mecanismo de **Injeção de Dependência (DI)** nativo do NestJS. As camadas de serviço dependem de abstrações (as interfaces/classes abstratas dos repositórios), e não de implementações concretas, permitindo maior flexibilidade e testabilidade.
+### Infrastructure Overview
 
-* **Autenticação Segura:** O sistema de autenticação foi baseado em **JWT**, utilizando um par de `accessToken` (curta duração) e `refreshToken` (longa duração). Essa abordagem melhora a segurança e a experiência do usuário, permitindo que a sessão seja renovada de forma transparente sem exigir um novo login.
+- **VPC** with public and private subnets across 2 availability zones
+- **Internet Gateway** for public subnets
+- **NAT Gateways** (one per AZ) for private subnets
+- **Amazon EKS** cluster with managed node group
+- **AWS Load Balancer Controller** installed via Helm
+- **Amazon ECR** repository for Docker images
+- **Bastion Host** for secure cluster access
 
-* **Consistência do Banco de Dados:** Para operações críticas que envolvem múltiplas escritas no banco — como a finalização de um pedido que requer a criação de `OrderItem`s e a atualização do estoque de `Product`s — utilizei as **transações do Prisma (`$transaction`)**. Isso garante a **atomicidade** da operação: ou todas as etapas são concluídas com sucesso, ou nenhuma é, mantendo a integridade dos dados.
+## 🔄 CI/CD (GitHub Actions)
 
----
+On every push to `master`:
+1. Builds the Docker image
+2. Authenticates to AWS via OIDC (no long-lived credentials)
+3. Pushes the image to Amazon ECR
+
+## ☸️ Kubernetes
+
+### Manifests
+
+| Resource | Description |
+|---|---|
+| Deployment | Application workload |
+| Service | Internal cluster networking |
+| Ingress | External traffic routing via ingress-nginx / AWS ALB |
+| Secret | Sensitive environment variables |
+
+### Helm Chart
+
+Custom Helm chart located at `k8s/charts/devops-lab` with support for:
+- Configurable replicas
+- Custom image registry and tag
+- Environment variables via Secrets
+- Liveness and Readiness probes
+- Ingress configuration
+
+### Health Checks
+
+The application exposes a `/health` endpoint that checks the database connectivity, integrated with Kubernetes Liveness and Readiness probes to ensure the pod only receives traffic when the database is available.
+
+### Sealed Secrets
+
+Sensitive Kubernetes Secrets are encrypted using Sealed Secrets, allowing them to be safely committed to the repository.
+
+## 🌐 DNS & TLS (AWS)
+
+- **External DNS** automatically manages Route 53 records based on Ingress annotations
+- **TLS certificate** provisioned via AWS ACM and integrated with the AWS Load Balancer Controller
+
+## 🔐 Security & Access Control
+
+- EKS authentication via AWS IAM using API mode
+- RBAC configured via `aws-auth` to allow additional IAM users to interact with the cluster
+- GitHub Actions authenticates to AWS via OIDC roles — no static credentials stored
+
+## 🖥️ Configuration Management (Ansible)
+
+- Ansible roles used to configure PostgreSQL
+- Vagrant used for local testing of Ansible playbooks before applying to cloud infrastructure
