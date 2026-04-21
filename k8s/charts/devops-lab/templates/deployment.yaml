@@ -13,6 +13,15 @@ spec:
       labels:
         app: {{ include "devops-lab.fullname" . }}
     spec:
+      initContainers:
+        - name: migrate
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          command: ["npx", "prisma", "migrate", "deploy"]
+          {{- if .Values.envFrom }}
+          envFrom:
+            {{- toYaml .Values.envFrom | nindent 12 }}
+          {{- end }}
       containers:
         - name: api
           image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
