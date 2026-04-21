@@ -15,6 +15,7 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: devops-lab-ecr
   EKS_CLUSTER_NAME: devops-lab-cluster
+  AWS_ROLE_ARN: arn:aws:iam::867732292235:role/devops-lab-gh-actions-oidc-role
 
 jobs:
   build-and-push:
