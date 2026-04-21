@@ -1,5 +1,3 @@
-> ⚠️ This project is currently under active development.
-
 # 🚀 DevOps Lab
 
 A production-grade DevOps laboratory using a NestJS + PostgreSQL API as the base application to demonstrate modern infrastructure practices with Kubernetes, Terraform, Helm, and CI/CD.
