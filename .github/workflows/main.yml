@@ -12,9 +12,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  AWS_REGION: east-us-1
-  ECR_REPOSITORY: x
-  EKS_CLUSTER_NAME: x
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: devops-lab-ecr
+  EKS_CLUSTER_NAME: devops-lab-cluster
 
 jobs:
   build-and-push:
@@ -27,6 +27,10 @@ jobs:
       id-token: write
       contents: read
 
+    outputs:
+      sha_tag: ${{ steps.tags.outputs.sha_tag }}
+      registry: ${{ steps.tags.outputs.registry }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +38,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: x
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -83,6 +87,34 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Image pushed to ECR" >> $GITHUB_STEP_SUMMARY
+          echo "**Registry:** ${{ steps.tags.outputs.registry }}/${{ env.ECR_REPOSITORY }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:** \`latest\` | \`${{ steps.tags.outputs.sha_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build-and-push
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{
           env.EKS_CLUSTER_NAME }}
@@ -90,12 +122,11 @@ jobs:
       - name: Deploy to EKS
         run: |
           helm upgrade --install devops-lab k8s/charts/devops-lab/ \
-          --set image.tag=${{ steps.tags.outputs.sha_tag }}
+            --set image.tag=${{ needs.build-and-push.outputs.sha_tag }}
 
       - name: Summary
         if: always()
         run: |
-          echo "### Image pushed to ECR" >> $GITHUB_STEP_SUMMARY
-          echo "**Registry:** ${{ steps.tags.outputs.registry }}/${{ env.ECR_REPOSITORY }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Tags:** \`latest\` | \`${{ steps.tags.outputs.sha_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployed to EKS" >> $GITHUB_STEP_SUMMARY
+          echo "**Image tag:** \`${{ needs.build-and-push.outputs.sha_tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
