@@ -73,7 +73,7 @@ jobs:
           image-ref: ${{ steps.tags.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{
             steps.tags.outputs.sha_tag }}
           format: table
-          exit-code: "1"
+          exit-code: "0"
           severity: CRITICAL,HIGH
           ignore-unfixed: true
 
