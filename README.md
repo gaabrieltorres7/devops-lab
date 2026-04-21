@@ -18,7 +18,6 @@ A production-grade DevOps laboratory using a NestJS + PostgreSQL API as the base
 - **Registry:** Amazon ECR
 - **Secrets Management:** Sealed Secrets
 - **DNS:** External DNS integrated with Route 53
-- **TLS:** ACM certificate integrated with AWS Load Balancer Controller
 - **Configuration Management:** Ansible with Vagrant for local testing
 
 ## 🏁 Running Locally (Kind)
@@ -104,10 +103,10 @@ The application exposes a `/health` endpoint that checks the database connectivi
 
 Sensitive Kubernetes Secrets are encrypted using Sealed Secrets, allowing them to be safely committed to the repository.
 
-## 🌐 DNS & TLS (AWS)
+## 🌐 DNS (AWS)
 
 - **External DNS** automatically manages Route 53 records based on Ingress annotations
-- **TLS certificate** provisioned via AWS ACM and integrated with the AWS Load Balancer Controller
+- **TLS via ACM** is planned but requires a registered domain for certificate validation. The infrastructure and IAM configuration are already in place
 
 ## 🔐 Security & Access Control
 
