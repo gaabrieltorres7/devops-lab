@@ -1,0 +1,5 @@
+---
+postgresql_version: 16
+postgresql_db: db_dev
+postgresql_user: docker
+postgresql_password: secret

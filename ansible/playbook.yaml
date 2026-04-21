@@ -1,0 +1,4 @@
+- hosts: postgresql
+  become: true
+  roles:
+    - role: roles/postgresql

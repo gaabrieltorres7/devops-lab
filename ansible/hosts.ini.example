@@ -1,0 +1,2 @@
+[postgresql]
+postgres ansible_host=<POSTGRES_PRIVATE_IP> ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa ansible_python_interpreter=/usr/bin/python3.10 ansible_ssh_common_args='-o ProxyJump=ubuntu@<BASTION_PUBLIC_IP>'
