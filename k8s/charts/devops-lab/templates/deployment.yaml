@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels: {{ include "devops-lab.labels" . | nindent 4}}
+  name: {{ include "devops-lab.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ include "devops-lab.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "devops-lab.fullname" . }}
+    spec:
+      containers:
+        - name: api
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          ports:
+            - containerPort: {{ .Values.appPort | default 3000 }}
+              protocol: TCP
+
+          {{- if .Values.envFrom }}
+          envFrom:
+            {{- toYaml .Values.envFrom | nindent 12 }}
+          {{- end }}
+
+          {{- if .Values.resources }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+
+          {{- if .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          {{- else }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.appPort | default 3000 }}
+          {{- end }}
+
+          {{- if .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- else }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.appPort | default 3000 }}
+          {{- end }}

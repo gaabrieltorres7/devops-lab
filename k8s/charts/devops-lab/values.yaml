@@ -1,0 +1,104 @@
+replicaCount: 1
+
+image:
+  registry: 867732292235.dkr.ecr.us-east-1.amazonaws.com
+  repository: devops-lab-ecr
+  tag: latest
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "250m"
+    memory: "256Mi"
+
+envFrom:
+  - secretRef:
+      name: devops-lab-secrets
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
+
+ingress:
+  enabled: true
+  host: api.devopslab.com.br
+  healthcheckPath: /health
+
+envs:
+  DATABASE_URL: AgCnVHETGOCdJfKcAKDm+mKbnzGyKhBqe/LukOM5l+Ke4Y3mejPOuLvEymuAo9Gsnpjm45oF7GQTAScmVLaN9JBqjn4YeloSn421USQvHMQXzfrgDQrNjyLNfBN1RO9hbAC6ZOWXY4vnd75ahHNCukCPFfMwJrrqk6FuRYbERSPoIpSj6iS8xDNhKdTSaXROqX5xNcJQc7WlvWflHq4rXcrlN2F+PLsrWpWcTiPOWsUEiRXqfERJt/ZZrwqrRy3XSzJc/+BOoKQ8x2MpnDs6hES1NkTk1hqes617OSwZ+Ub9aTgvidct4fONj4EKbj+E3EawX32IUeGebmk5g+xszIBg8F9PL6RcVU+KSmmXa1XcBHUGQg6sKn/S0VmL5kh7ccGsFmRyR5HJpAejcLr7A7syMQFb0/eYDh9lemX/ObCGtb32RJNPQQFpRldqpznTAjmZJnsvyYhMdpXJuit7Bsg6dV3JjNDZDuIeH4F9YGKAqIh9U8yrXBOSlmN1P0hIQJ/xMmC98ET0nbURO4lvIGsKRwveOLMg6RoQw2RxxMaFChQMQBe6oFm4COhOPKHwOFtux+DP7/PuSXI44t2HGEGDwn8DqTlIcB6zNzrH6HHbHHoSw0li51jL2vGRzBRHdjYXuUcJ5JaJw9D5bPJald7+CrF6PYkcXYbXHHhTzMTDjJ4oQ66iOLvEFuQuyj14k4ZEN++MecMjSoOvNagopWkQoVn+t0UEzysl8scLFPKO2Ic9DQ5483hqyynCe9yTrW/7Bg==
+  DB_PORT: "AgANIkODUPXI7LiFoB79Sqlkz7UXZPgQaerqTMAEHHMVyVU+DvWsHQL2/GJqukDCb4g6Z\
+    XOeSKO+sPj6qwaafba93vznaFCtb8NCAAdYRFbBVOlxJ8AUrwzn8gLOCqBJ0rox1+2kchItOWx+\
+    ftRzKJMGj54WWWvW63S3jT4LpkOYsAEAEDRz9LxMpo5BnkwMCoMNWWDEkRr1uI7T7SUXCCac9IO\
+    qfBelc9mDNeEym2tpJIZpKpGLSRxaWMqiqJtrWk5LkVuKesruU2Jw47d5KUOkZsPXA6T16p9Una\
+    X5/OVpZAfgJ4s5uzo0uysnumcc6wJ/oYJUIfn3mz7R1NBSPywshIdcVAw4kyHdQZz4ynxIAH/8E\
+    7Gpg5F/rYrejm6BHTGtF3bojpNMoMheUzw0FR5n3AtunVtzpWzBEteVxth5l5D8i2bHK48gYqnE\
+    Tm15PbXvMgP8qIvv6fAY65V27xxIJhLjWeS5xUamX13FCW4PnprCY0y2nJ54p1FNpxrNEAV7Xtx\
+    QoNBc/k3Vca5d/V92/mr9qiCvVklAcHbEa0ikpuncWdU8mSC2tWDN2J6Kmc5Mm4g7t2bD1S6Qvo\
+    4KzPzVfP+xpgZAy8ug6Gp6ZROu/H9bdXnF5jrI+yM/O27CSJ8odhdIZp3Nzm/y7rzi2+d97JAgQ\
+    bGlTB1Z9KNQ6zyGTOGujB21UxoaMjLGu8XWxAYOzx/b"
+  JWT_SECRET: "AgBUhKypAA0OtAATtsRl8rQkfGQW2F/MrPvbQTf6Ck+6H07DNddLdq3jKFmFv3VnYu\
+    sBLZ/y3p/prepESjVuNAzZKE6S6ML1RmCt9T44H5kxfpYW1V/Hi3g+6yeropEUO7bfT6w1A9Sk6\
+    X6iPxLgMbwAGZyAULRm1ONv0FvdybJqDBppCLpBYN1JyZfiMNifJlGSPy9BRPL70EzZRwg74brA\
+    dxEckxdHYhw0X0o/DW2CgQSgXUJv3ACSsPXhkoDsWPFmgfsFakbOzt6bsHBuw0xnD4TLZIG78Fz\
+    OO8Ax1DtzDZC1gktKQ4RMD8DCFZsFBB3jiYT8l+ZXph+9XQEFOp2ogRoPdaNxvEey7GkQH+nmhj\
+    LlXJyLzm5G6ZYmt4DPbrh6cxPcr3H+Sw5DxcT27NKbpLrZnO/feuEHU5b+Wt9sHeu7LQJwxXU0O\
+    Eb0SQfQ9Rb2McX5g3TU4YfYN8e2PruZx3FE0zxyZuWND7zzDY+QC4YCATotWtna8G6Jlq62840t\
+    A2RroYT7U7IHWCe4OdunAo4yTfC84j9x/bnNiliQXxVa+61ant7TrO7wzDKTCk+GaXJI1ePfhAa\
+    x2WiztyXXYt/AmetWAuM3TM16rWTuNKFQ7GmNkJZItaR1pYh7BDXbB6V3pjnrpqwfneBsnoayit\
+    P9/o4brS1SvVj3G9EZXjo8Wpj/NLKXaiook8oBh082CXqVipEmLQHzIui9k+lV"
+  JWT_REFRESH_SECRET: "AgBJ4p2kOrcVceoUefm+lguzexkaMqNS3BXI55lyt5Q/mFf2o+lpW7VHEt\
+    RoIU+0e+Xnm+gvoKGkL9YjutuO/ooGZFgXmsdHoo0hft9WGUULjkxl668Rj1xNcG5451Go6L2aI\
+    LbTPlCrSgoTbADzLtUV73nzfCWjDDelq8/NhiEvSHnwZuwPTNSsUnIRY+5DSwbOcYyIYrgxF+Xp\
+    9RWUz+InukBhH+M9ePKyvlsAp6IsnzCiVQ5CoJbnGOR6FOC84F4Nuj5P/nrpwKPR1G83tYOvIRe\
+    33FiuunG8svEkY6iGFVtVccGiQlSv1FhZcg3mXV6+m5x5njwPuo5/jwULVm+TfCUUqZk6R7ey4w\
+    3v2xRO3OEiLYeUYfii7RXNGhOLEET8/viDwNz1rGOQ+7rT9nJrvcg9Jv2BEaiHXpO7jF9bChMZS\
+    7zTnzUhjt3+s5Xp2lyQ21DrYcuoqr334IwTk2FkZnq0Xr0j2cPF8Ky7kRBZLtxp/FXP7kH8v+k5\
+    AOZldF0mJt7aJX/KFCAFYS9A+g8bkISdYTcOQrGqlqn/BeknXc93JXaata1XnGT2MlSrsZgdCOZ\
+    fUBr3Dg887whn1UvJViUxOyGZq1NPvOZXflfz+PFlUKzXqKDCjKjq0qRNy5qa6lY8xf6if/5Nfd\
+    kgVwJrg11P9LuTzvscmI3l7g8E/1lm+FEUEqo1CbhSjEXLf9kLJu6Gl6zR3uaihuKsorEeKc6qG\
+    2BigA=="
+  POSTGRES_DB: "AgCZE45mIDe+OP28r/Z3b0kB0U3I7JAsxKRKnQy/akl1kMpD1Inn5znqHFV7MkEoJ\
+    V9nRBrAukxCiwX/Hhd4ld6rxmAVTM1Buqiwwa5RDbaqG1v26uY6+WWlMbhMvKGSolTxBRvZbNTz\
+    DisCixw512K+sX8Zc31d6Nbx1Op/ZPssu0YnJCLXpRpjWRoCy4oA+aDHDUmMaT+AG10kQ9NR2Qc\
+    IHElun6btsSUkeEqmAuPYCIRevWt5xrSF24VKUBJeCXSqATc+cBNM8dx9dbu4lUuWOI28guFnNf\
+    XRo+7wFpGJCSQT1dok1Z8sy7A04VwJKD1SjnVsyV6NjUpAqCvAgIjBYe4x6PfC4F1Pkxf3hR/WR\
+    3W0D9C9XmK5V/upHYvOyb7klysTzTxCtFbABcZP7ckbdu7ltV+ov0ef0KDI36XblQO+q7SeYfua\
+    1Jw13r5mrle5kvdoMaxWHuYIvgUBU8gCvT3bHoIV5r9BI8xoS7KKd7Jt0BXZtDySGGlSpxd3BLI\
+    4NeOVtuczODV4au6uURW8c8FPGhLqYaiHjsrbQi6JaIAByd/pDfKSKHTbLXEjr7XXwbYsBWHiil\
+    WzaUnW26mIW63WD9GtfiOGjqm6gBvaVCgkYCPetrc0ulGMOz3TjKfXtbo/bt80MEOLN8HgnDqQv\
+    bS+e+zCbupgLDi7VOUTcSjaKBhCrP5wFFGBIZ7POKKqAOVBjZk="
+  POSTGRES_PASSWORD: "AgCAAVZrdhfmTXrD/Oq5AyBANdlPsfeSeNck2HhywLcPl/YeH8ZG5LCojNL\
+    8hcYr5ue7szyOZ93G80Qw9bzOpc1vxdTOMjl4OCWqyEEz6MYZGfH9AvmKqW+EPohs5qXuTXIMSO\
+    NS02dBPT2SWWEAz9dU635IAK0P3dTmnbiUgEEYfQ9rxTiaLdk37SShkEzbtZjL6YV/6Xx6u1J2e\
+    gbcx3NIbslfNuCe6WzWXxpETa/WIpCZAX/oB5mUd5ojyCAPp7ElnkI5YGzoSF7ZG4vhkc+ayxJj\
+    S76Dg/mXkbifr8QzQuc61wfs0HtepGwnne995lnPLIPn6qbR1oWwzcxAMRGSCqZgvotv4bSMvIR\
+    EFKTYMArFsdF2TiqRbrDcCrlPthz36+8+EOyXCzaVUKLET9nj6RLjAWumOeRgfTWi5qdktdoGdP\
+    9t1xwEth/rlzXh5++/qfMkqnyzFnoSVqFzHuAjmXEnyVzCIZAhWUsUDbRxmbFvldqAzpH6GDWJ7\
+    tTq2JV9c9xnptlkGibBxDg7+GtI4slJs/yVeIIDs2oLmjPWIIv5Rywy6oQFJO8Dy50zJCgQeJHe\
+    +qHmTEzWeqHudjyjLw4bGayEnohhKUOP9EkOJQg7M3q8hyYQR2vTFrkxieAAf4W5/SeQyDN74gJ\
+    vNBLu80IwPOiae4H+p8BXul3NO5zILbFf7D2O9W7hKRD9o2SpjzlENIE="
+  POSTGRES_USER: "AgAzRUDGNixiRm8VFEQHG1pGv3AAmdvG5+Ff4Lf+GbuwnPowTEAv5h8ijnGt+lu\
+    m3kqy3pu1QbYcbudAi7Wyb4z20yascO86CIkrJFuPrXbmIPiEWnL4RSyTtubtaTgTGbTOJNkpCN\
+    LfLRaKfMScytdWK7YwmE9ZVay4qIEAxxdsq8Clrc5N55mVt7UEkuWNT9AmAybGuELaAZtCsQLpS\
+    bbLwnBl11JhshCFXunQ1lseZjyiE1GdWiHTj/8X2TRV8iDAT8upnH8nsJwRWlyi+EssluivxxdH\
+    1LSZvhG+rrahTHebN+9vQJeu51N/ada42YProYwjxiIoENdvbFh8knBBbTsXR8yMD9lq7rQj+nH\
+    4cQguWwku5vmMriU0+cxY3M+3zM4/U17TYphKpavioN+QCvnep5e58ip+KOEjtsgY8vTvcWfGQP\
+    SI3F4lCA/WF9zJhhlvEgLtk6RnXKBY6TrbePTb6/UZE1FOl4U05SbpaHZq9ksvG/ST0Yxa5T9pD\
+    czsiTVGwqkMrk0A4aulju4JKT6IV2KkhZCKWF5QUnnc7WRmT+HxrRY9r5tis7Uwr+xhL0w5wAjb\
+    pMlLIJ2yhPD1XVsvV/k1vN8DDyIeX2c/lyQcavtwnucAa5DWNt3UHfTutAb3F9W8cq/AzLe2e8D\
+    cfCuEBKR319KsaLivFe+XBtcVluGFJ+eALGZf1ShVo2yeERUXDz8="

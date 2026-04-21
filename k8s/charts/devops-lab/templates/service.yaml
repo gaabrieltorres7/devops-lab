@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels: {{ include "devops-lab.labels" . | nindent 4}}
+  name: {{ include "devops-lab.fullname" . }}
+spec:
+  ports:
+    - port: {{ .Values.appPort | default 3000 }}
+  selector:
+    app: {{ include "devops-lab.fullname" . }}
