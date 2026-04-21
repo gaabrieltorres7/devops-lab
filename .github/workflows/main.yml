@@ -1,6 +1,10 @@
-name: CI
+name: Deploy to Kubernetes
 
 on:
+  push:
+    branches:
+      - master
+
   workflow_dispatch:
 
 concurrency:
@@ -8,8 +12,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  AWS_REGION: x
+  AWS_REGION: east-us-1
   ECR_REPOSITORY: x
+  EKS_CLUSTER_NAME: x
 
 jobs:
   build-and-push:
@@ -29,7 +34,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: x
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -46,7 +51,28 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push
+      - name: Build (without push)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: |
+            ${{ steps.tags.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.tags.outputs.sha_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Scan image for vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.tags.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{
+            steps.tags.outputs.sha_tag }}
+          format: table
+          exit-code: "1"
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+
+      - name: Push to ECR
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -57,14 +83,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Scan image for vulnerabilities (Trivy)
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ steps.tags.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.tags.outputs.sha_tag }}
-          format: table
-          exit-code: '1'
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{
+          env.EKS_CLUSTER_NAME }}
+
+      - name: Deploy to EKS
+        run: |
+          helm upgrade --install devops-lab k8s/charts/devops-lab/ \
+          --set image.tag=${{ steps.tags.outputs.sha_tag }}
 
       - name: Summary
         if: always()
